@@ -30,7 +30,7 @@ fs.readFileAsync('listings.json', 'utf-8').then(function(resolve, reject) {
       address: listing.address,
     });
 
-    newListing.save(function(eff, s){
+    newListing.save(function(err, s){
       console.log(s);
     });
   });
