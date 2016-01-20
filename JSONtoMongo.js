@@ -10,31 +10,34 @@ var fs = require('fs'),
     config = require('./config');
 
 /* Connect to your database */
-mongoose.connect(config.db);
+console.log("Attempting to connect to database...");
+mongoose.connect(config.db.uri);
+
+var db = mongoose.connection;
+db.on('error', console.error.bind(console, 'connection error:'));
+console.log("Connected to Database!");
 
 /* 
   Instantiate a mongoose model for each listing object in the JSON file, 
   and then save it to your Mongo database 
  */
-fs.readFileAsync('listings.json', 'utf-8').then(function(resolve, reject) {
-  var listings = JSON.parse(resolve);
 
-  listings.forEach (function(listing) {
-    var newListing = new Listing({
-      code: listing.code,
-      name: listing.name,
-      coordinated: {
-        latitude: listing.coordinate.latitude,
-        longitude: listing.coordinates.longitude
-      },
-      address: listing.address,
-    });
+var listingData = JSON.parse(fs.readFileSync('./listings.json', 'utf8')).entries;
 
-    newListing.save(function(err, s){
-      console.log(s);
-    });
-  });
-});
+var counter = 0;
+var callback = function(err){
+  counter++;
+  if(err) throw err;
+  if (counter == listingData.length) {
+    console.log('Listings added.');
+    process.exit(0);
+  }
+}
+
+for(var i = 0; i < listingData.length; i++){
+  new Listing(listingData[i]).save(callback);
+  console.log(listingData[i]);
+}
 
 /* 
   Once you've written + run the script, check out your MongoLab database to ensure that 
